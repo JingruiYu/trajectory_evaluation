@@ -17,14 +17,14 @@ rc('text', usetex=True)
 
 FORMAT = '.pdf'
 
-ALGORITHM_CONFIGS = ['Our', 'Tight', 'ICP', 'ORB', 'Odometer']
+ALGORITHM_CONFIGS = ['Our', 'Tight', 'ICP', 'ORB']#, 'Odometer']
 
 # These are the labels that will be displayed for items in ALGORITHM_CONFIGS
 PLOT_LABELS = {'Our': 'Our method',
-               'Tight': 'Tight odom',
-               'ICP': 'Bird ICP',
-               'ORB': 'Bird ORB',
-               'Odometer': 'Odometer'}
+               'Tight': 'Visual odom',
+               'ICP': 'Sur edge',
+               'ORB': 'Sur kPts'}#,
+               #'Odometer': 'Pure Odom'}
 
 # assgin colors to different configurations
 # make use you have more colors in the pallete!
@@ -328,6 +328,25 @@ def plot_overall_odometry_errors(overall_err, output_dir):
     plt.close(fig)
 
 
+def saveAligned(dataset_trajectories_dict, dataset_names):
+    for dataset_idx, dataset_nm in enumerate(dataset_names):
+        p_aligned = {}
+        q_aligned = {}
+        dataset_trajs = dataset_trajectories_dict[dataset_idx]
+        for traj in dataset_trajs:
+            p_aligned[traj.alg] = traj.p_es_aligned
+            q_aligned[traj.alg] = traj.q_es_aligned
+    ICP = np.concatenate((p_aligned['ICP'],q_aligned['ICP']),axis=1)
+    ORB = np.concatenate((p_aligned['ORB'],q_aligned['ORB']),axis=1)
+    OUR = np.concatenate((p_aligned['Our'],q_aligned['Our']),axis=1)
+    Tig = np.concatenate((p_aligned['Tight'],q_aligned['Tight']),axis=1)
+    np.savetxt('/home/yujr/trajectory_evaluation/results/downLong/ICP.txt',ICP,fmt='%.7f')
+    np.savetxt('/home/yujr/trajectory_evaluation/results/downLong/ORB.txt',ORB,fmt='%.7f')
+    np.savetxt('/home/yujr/trajectory_evaluation/results/downLong/OUR.txt',OUR,fmt='%.7f')
+    np.savetxt('/home/yujr/trajectory_evaluation/results/downLong/Tig.txt',Tig,fmt='%.7f')
+    print("<<< ... saveAligned.\n")
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='''Analyze trajectories''')
 
@@ -485,6 +504,7 @@ if __name__ == '__main__':
             rmse_table['values'], rmse_table['rows'], rmse_table['cols'],
             os.path.join(output_dir, args.platform + '_translation_rmse.txt'))
 
+    saveAligned(dataset_trajectories_list, datasets)
     print("#####################################")
     print("<<< Finished.")
     print("#####################################")
